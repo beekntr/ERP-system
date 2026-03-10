@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - ERP Purchase Order System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <h4><i class="bi bi-box-seam me-2"></i>ERP</h4>
+                <small>Purchase Order System</small>
+            </div>
+            
+            <ul class="sidebar-nav nav flex-column">
+                <li class="nav-item">
+                    <a href="/dashboard" class="nav-link">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/vendors" class="nav-link">
+                        <i class="bi bi-building"></i>
+                        Vendors
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products" class="nav-link active">
+                        <i class="bi bi-box"></i>
+                        Products
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/create-po" class="nav-link">
+                        <i class="bi bi-cart-plus"></i>
+                        Create PO
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a href="#" class="nav-link" onclick="ERP.handleLogout(); return false;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1 class="page-title">Product Management</h1>
+                <div class="user-info">
+                    <span id="userName">User</span>
+                    <div class="user-avatar" id="userAvatar">U</div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Add Product Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-plus-circle me-2"></i>Add New Product
+                    </div>
+                    <div class="card-body">
+                        <form id="productForm" onsubmit="saveProduct(event)">
+                            <input type="hidden" id="productId">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="productName" class="form-label">Product Name *</label>
+                                    <input type="text" class="form-control" id="productName" required placeholder="Enter product name">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="productSku" class="form-label">SKU *</label>
+                                    <input type="text" class="form-control" id="productSku" required placeholder="e.g., PROD-001">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="productPrice" class="form-label">Unit Price *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="productPrice" required min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label for="productStock" class="form-label">Stock Level</label>
+                                    <input type="number" class="form-control" id="productStock" min="0" value="0">
+                                </div>
+                                <div class="col-md-3 mb-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100" id="productSubmitBtn">
+                                        <i class="bi bi-plus-lg me-1"></i> Add Product
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9 mb-3">
+                                    <label for="productDescription" class="form-label">Description</label>
+                                    <div class="input-group">
+                                        <textarea class="form-control" id="productDescription" rows="2" placeholder="Product description..."></textarea>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="generateAIDescription()" title="Generate with AI">
+                                            <i class="bi bi-magic"></i> AI Generate
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Click "AI Generate" to auto-generate a product description</small>
+                                </div>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-secondary btn-sm" id="cancelEditBtn" style="display: none;" onclick="cancelEdit()">
+                            Cancel Edit
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Products Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-list-ul me-2"></i>Products List</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadProducts()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>SKU</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-center">Stock</th>
+                                        <th>Description</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/app.js"></script>
+    
+    <script>
+        let editingProductId = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!ERP.initPage('products')) return;
+            loadProducts();
+        });
+        
+        // Load products from API
+        async function loadProducts() {
+            try {
+                ERP.showLoading('productsTableBody');
+                const products = await ERP.apiRequest('/products');
+                renderProductsTable(products);
+            } catch (error) {
+                ERP.showToast('Failed to load products: ' + error.message, 'danger');
+            }
+        }
+        
+        // Render products table
+        function renderProductsTable(products) {
+            const tbody = document.getElementById('productsTableBody');
+            
+            if (products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-box" style="font-size: 3rem; opacity: 0.5;"></i>
+                                <h5 class="mt-3">No products yet</h5>
+                                <p class="text-muted">Add your first product using the form above</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td>${product.id}</td>
+                    <td><strong>${product.name}</strong></td>
+                    <td><code>${product.sku}</code></td>
+                    <td class="text-end">${ERP.formatCurrency(product.unit_price)}</td>
+                    <td class="text-center">
+                        <span class="badge bg-${product.stock_level > 10 ? 'success' : product.stock_level > 0 ? 'warning' : 'danger'}">
+                            ${product.stock_level}
+                        </span>
+                    </td>
+                    <td class="text-truncate-2" style="max-width: 200px;" title="${product.description || ''}">
+                        ${product.description || '<span class="text-muted">-</span>'}
+                    </td>
+                    <td>${ERP.formatDate(product.created_at)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(${product.id})" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${product.id})" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Save product (create or update)
+        async function saveProduct(event) {
+            event.preventDefault();
+            
+            const productData = {
+                name: document.getElementById('productName').value.trim(),
+                sku: document.getElementById('productSku').value.trim(),
+                unit_price: parseFloat(document.getElementById('productPrice').value) || 0,
+                stock_level: parseInt(document.getElementById('productStock').value) || 0,
+                description: document.getElementById('productDescription').value.trim() || null
+            };
+            
+            if (!productData.name || !productData.sku) {
+                ERP.showToast('Please enter product name and SKU', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('productSubmitBtn');
+            submitBtn.disabled = true;
+            
+            try {
+                if (editingProductId) {
+                    // Update existing product
+                    await ERP.apiRequest(`/products/${editingProductId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(productData)
+                    });
+                    ERP.showToast('Product updated successfully!', 'success');
+                } else {
+                    // Create new product
+                    await ERP.apiRequest('/products', {
+                        method: 'POST',
+                        body: JSON.stringify(productData)
+                    });
+                    ERP.showToast('Product created successfully!', 'success');
+                }
+                
+                resetForm();
+                loadProducts();
+            } catch (error) {
+                ERP.showToast('Failed to save product: ' + error.message, 'danger');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+        
+        // Edit product
+        async function editProduct(id) {
+            try {
+                const product = await ERP.apiRequest(`/products/${id}`);
+                
+                editingProductId = id;
+                document.getElementById('productId').value = id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productSku').value = product.sku;
+                document.getElementById('productPrice').value = product.unit_price.toFixed(2);
+                document.getElementById('productStock').value = product.stock_level;
+                document.getElementById('productDescription').value = product.description || '';
+                
+                document.getElementById('productSubmitBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i> Update Product';
+                document.getElementById('cancelEditBtn').style.display = 'inline-block';
+                
+                // Scroll to form
+                document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                ERP.showToast('Failed to load product: ' + error.message, 'danger');
+            }
+        }
+        
+        // Delete product
+        async function deleteProduct(id) {
+            const confirmed = await ERP.confirmAction('Are you sure you want to delete this product?');
+            
+            if (!confirmed) return;
+            
+            try {
+                await ERP.apiRequest(`/products/${id}`, { method: 'DELETE' });
+                ERP.showToast('Product deleted successfully!', 'success');
+                loadProducts();
+            } catch (error) {
+                ERP.showToast('Failed to delete product: ' + error.message, 'danger');
+            }
+        }
+        
+        // Generate AI Description
+        async function generateAIDescription() {
+            const productName = document.getElementById('productName').value.trim();
+            
+            if (!productName) {
+                ERP.showToast('Please enter a product name first', 'warning');
+                return;
+            }
+            
+            const descriptionField = document.getElementById('productDescription');
+            const originalValue = descriptionField.value;
+            descriptionField.value = 'Generating description...';
+            descriptionField.disabled = true;
+            
+            try {
+                const result = await ERP.apiRequest('/products/generate-description', {
+                    method: 'POST',
+                    body: JSON.stringify({ product_name: productName })
+                });
+                
+                descriptionField.value = result.description;
+                ERP.showToast('Description generated successfully!', 'success');
+            } catch (error) {
+                descriptionField.value = originalValue;
+                ERP.showToast('Failed to generate description: ' + error.message, 'warning');
+            } finally {
+                descriptionField.disabled = false;
+            }
+        }
+        
+        // Cancel edit
+        function cancelEdit() {
+            resetForm();
+        }
+        
+        // Reset form
+        function resetForm() {
+            editingProductId = null;
+            document.getElementById('productId').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productSku').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productStock').value = '0';
+            document.getElementById('productDescription').value = '';
+            document.getElementById('productSubmitBtn').innerHTML = '<i class="bi bi-plus-lg me-1"></i> Add Product';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

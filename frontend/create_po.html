@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Purchase Order - ERP Purchase Order System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <h4><i class="bi bi-box-seam me-2"></i>ERP</h4>
+                <small>Purchase Order System</small>
+            </div>
+            
+            <ul class="sidebar-nav nav flex-column">
+                <li class="nav-item">
+                    <a href="/dashboard" class="nav-link">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/vendors" class="nav-link">
+                        <i class="bi bi-building"></i>
+                        Vendors
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products" class="nav-link">
+                        <i class="bi bi-box"></i>
+                        Products
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/create-po" class="nav-link active">
+                        <i class="bi bi-cart-plus"></i>
+                        Create PO
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a href="#" class="nav-link" onclick="ERP.handleLogout(); return false;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1 class="page-title">Create Purchase Order</h1>
+                <div class="user-info">
+                    <span id="userName">User</span>
+                    <div class="user-avatar" id="userAvatar">U</div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Vendor Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-building me-2"></i>Select Vendor
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="vendorSelect" class="form-label">Vendor *</label>
+                                <select class="form-select" id="vendorSelect" required>
+                                    <option value="">Loading vendors...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-plus-circle me-2"></i>Add Items
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-md-4 mb-3">
+                                <label for="productSelect" class="form-label">Product *</label>
+                                <select class="form-select" id="productSelect" onchange="POManager.handleProductSelect(this)">
+                                    <option value="">Loading products...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="itemQuantity" class="form-label">Quantity *</label>
+                                <input type="number" class="form-control" id="itemQuantity" min="1" value="1">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="itemPrice" class="form-label">Unit Price *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="itemPrice" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <button type="button" class="btn btn-success w-100" id="addItemBtn" onclick="addItem()">
+                                    <i class="bi bi-plus-lg me-1"></i> Add Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Items Table -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-list-ul me-2"></i>Order Items
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 po-items-table">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th width="35%">Product</th>
+                                        <th width="15%" class="text-center">Quantity</th>
+                                        <th width="15%" class="text-end">Unit Price</th>
+                                        <th width="15%" class="text-end">Line Total</th>
+                                        <th width="15%" class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            No items added yet. Add products to your order above.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-calculator me-2"></i>Order Summary
+                            </div>
+                            <div class="card-body">
+                                <div class="po-summary">
+                                    <div class="po-summary-row">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotalAmount">$0.00</span>
+                                    </div>
+                                    <div class="po-summary-row">
+                                        <span>Tax (5%):</span>
+                                        <span id="taxAmount">$0.00</span>
+                                    </div>
+                                    <div class="po-summary-row">
+                                        <span>Total:</span>
+                                        <span id="totalAmount">$0.00</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="button" class="btn btn-primary btn-lg" id="submitPOBtn" onclick="submitPurchaseOrder()">
+                                        <i class="bi bi-check-circle me-2"></i>Create Purchase Order
+                                    </button>
+                                    <a href="/dashboard" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/po.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            POManager.initCreatePOPage();
+        });
+    </script>
+</body>
+</html>
