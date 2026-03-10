@@ -1,10 +1,12 @@
 # ERP Purchase Order Management System
 
-A production-quality mini ERP purchasing module built with FastAPI, PostgreSQL, and Bootstrap. This system allows authenticated users to manage vendors, products, and purchase orders with automatic tax calculations.
+A production-quality mini ERP purchasing module built with FastAPI, SQLite, and Bootstrap. This system allows authenticated users to manage vendors, products, and purchase orders with automatic tax calculations.
+
+**Assignment:** IV Innovations Private Limited - ERP System PO Management
 
 ![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-green.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)
+![SQLite](https://img.shields.io/badge/SQLite-3-blue.svg)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)
 
 ## Table of Contents
@@ -22,36 +24,43 @@ A production-quality mini ERP purchasing module built with FastAPI, PostgreSQL, 
 
 ## Features
 
-- **User Authentication**: Google OAuth 2.0 with JWT tokens
-- **Vendor Management**: Create, read, update, delete vendors
-- **Product Management**: Full CRUD operations with SKU tracking
-- **Purchase Orders**: Create orders with multiple items
-- **Automatic Calculations**: Subtotal, tax (5%), and total computed automatically
-- **AI-Powered Descriptions**: Optional LLM integration for product descriptions
-- **Responsive Dashboard**: Bootstrap-based UI with real-time statistics
+### Core Requirements Met
+- **RESTful API**: Built with FastAPI (Python)
+- **Database Schema**: Three related tables - Vendors, Products, PurchaseOrders with proper FK relationships
+- **Calculate Total Function**: Automatically applies 5% tax and updates Total Amount
+- **Dashboard**: View all Purchase Orders with status and amounts
+- **Create New PO Form**: Fetches Vendors and Products via API
+- **Dynamic UI**: Vanilla JS allows adding multiple product rows before submitting
+- **OAuth Authentication**: Google OAuth with JWT tokens
+
+### Additional Features
+- **AI Auto-Description**: Button to generate product descriptions using OpenAI/Gemini
+- **Rate Limiting**: API rate limiting with slowapi
+- **Input Sanitization**: XSS protection with bleach
+- **Responsive Design**: Bootstrap 5.3 with CSS Flexbox/Grid
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Frontend Layer                          │
-│   HTML + Bootstrap + Vanilla JavaScript                     │
+│   HTML5 + Bootstrap 5.3 + Vanilla JavaScript                │
 │   (login.html, dashboard.html, vendors.html, etc.)          │
 ├─────────────────────────────────────────────────────────────┤
 │                      API Layer (Routes)                      │
-│   FastAPI endpoints with authentication                      │
+│   FastAPI RESTful endpoints with JWT authentication          │
 │   /api/vendors, /api/products, /api/purchase-orders         │
 ├─────────────────────────────────────────────────────────────┤
 │                   Business Logic Layer                       │
-│   CRUD operations, calculations, validations                 │
-│   (crud.py, auth.py)                                        │
+│   CRUD operations, tax calculations, validations             │
+│   (crud.py, auth.py, security.py)                           │
 ├─────────────────────────────────────────────────────────────┤
 │                   Data Access Layer                          │
 │   SQLAlchemy ORM, Pydantic schemas                          │
 │   (models.py, schemas.py, database.py)                      │
 ├─────────────────────────────────────────────────────────────┤
 │                      Database Layer                          │
-│   PostgreSQL with relational integrity                       │
+│   SQLite with relational integrity (PK/FK)                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -61,8 +70,10 @@ A production-quality mini ERP purchasing module built with FastAPI, PostgreSQL, 
 - **Python 3.9+**
 - **FastAPI** - Modern async web framework
 - **SQLAlchemy 2.0** - ORM for database operations
-- **PostgreSQL** - Relational database
+- **SQLite** - Lightweight relational database (easily switchable to PostgreSQL)
 - **Pydantic** - Data validation
+- **slowapi** - Rate limiting
+- **bleach** - Input sanitization
 
 ### Authentication
 - **Google OAuth 2.0** - Social login
@@ -71,9 +82,9 @@ A production-quality mini ERP purchasing module built with FastAPI, PostgreSQL, 
 
 ### Frontend
 - **HTML5**
-- **CSS3**
+- **CSS3** (Flexbox/Grid)
 - **Bootstrap 5.3**
-- **Vanilla JavaScript**
+- **Vanilla JavaScript** (jQuery-free)
 
 ## Database Schema
 
@@ -210,7 +221,6 @@ A production-quality mini ERP purchasing module built with FastAPI, PostgreSQL, 
 ### Prerequisites
 
 - Python 3.9 or higher
-- PostgreSQL 13 or higher
 - Git
 
 ### Step 1: Clone the Repository
@@ -238,23 +248,18 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 4: Setup PostgreSQL Database
-
-```sql
--- Connect to PostgreSQL and create database
-CREATE DATABASE erp_po_db;
-```
-
-### Step 5: Configure Environment Variables
+### Step 4: Configure Environment Variables
 
 ```bash
 # Copy example file
 cp .env.example .env
 
 # Edit .env with your settings
-# Required: DATABASE_URL, SECRET_KEY
-# Optional: GOOGLE_CLIENT_ID, OPENAI_API_KEY
+# Required: SECRET_KEY
+# Optional: GOOGLE_CLIENT_ID, OPENAI_API_KEY, GEMINI_API_KEY
 ```
+
+**Note:** SQLite database is created automatically on first run. No database setup required.
 
 ## Configuration
 
@@ -262,11 +267,12 @@ cp .env.example .env
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| DATABASE_URL | Yes | PostgreSQL connection string |
+| DATABASE_URL | No | SQLite connection string (default: `sqlite:///./erp_po_system.db`) |
 | SECRET_KEY | Yes | JWT signing key (use `openssl rand -hex 32`) |
 | GOOGLE_CLIENT_ID | No* | Google OAuth client ID |
 | GOOGLE_CLIENT_SECRET | No* | Google OAuth client secret |
-| OPENAI_API_KEY | No | For AI product descriptions |
+| OPENAI_API_KEY | No | For AI product descriptions (OpenAI) |
+| GEMINI_API_KEY | No | For AI product descriptions (Google Gemini) |
 | TAX_RATE | No | Tax rate (default: 0.05 = 5%) |
 | DEBUG | No | Enable debug mode (default: True) |
 
@@ -287,6 +293,11 @@ cp .env.example .env
 
 ```bash
 # From the erp_po_system directory
+python run.py
+```
+
+Or using uvicorn directly:
+```bash
 uvicorn backend.main:app --reload
 ```
 
@@ -380,6 +391,7 @@ erp_po_system/
 │   ├── schemas.py           # Pydantic validation schemas
 │   ├── crud.py              # Database CRUD operations
 │   ├── auth.py              # Authentication utilities
+│   ├── security.py          # Rate limiting, sanitization
 │   └── routes/
 │       ├── __init__.py      # Routes package
 │       ├── auth_routes.py   # Authentication endpoints
@@ -387,33 +399,41 @@ erp_po_system/
 │       ├── products.py      # Product CRUD endpoints
 │       └── purchase_orders.py # PO endpoints
 ├── frontend/
-│   ├── login.html           # Login page
+│   ├── login.html           # Login page (Google OAuth)
 │   ├── dashboard.html       # Dashboard with PO list
 │   ├── vendors.html         # Vendor management
 │   ├── products.html        # Product management
-│   └── create_po.html       # Create purchase order
+│   └── create_po.html       # Create purchase order form
 ├── static/
 │   ├── css/
-│   │   └── styles.css       # Custom styles
+│   │   └── styles.css       # Custom styles (Flexbox/Grid)
 │   └── js/
-│       ├── app.js           # Common utilities
+│       ├── app.js           # Common utilities, auth handling
 │       └── po.js            # PO-specific functions
+├── database/
+│   └── schema.sql           # SQL schema export
 ├── .env.example             # Environment template
 ├── requirements.txt         # Python dependencies
-└── README.md               # This file
+├── run.py                   # Server runner script
+└── README.md                # This file
 ```
 
 ## Business Logic
 
-### Tax Calculation
+### Calculate Total Function (Assignment Requirement)
 
-All calculations are performed server-side:
+The system automatically applies 5% tax and updates Total Amount based on items added to the PO. All calculations are performed server-side in `crud.py`:
 
+```python
+subtotal = Σ(item.quantity × item.price)  # Sum of all line items
+tax = subtotal × 0.05                      # 5% tax automatically applied
+total_amount = subtotal + tax              # Final amount
 ```
-subtotal = Σ(item.quantity × item.price)
-tax = subtotal × 0.05
-total_amount = subtotal + tax
-```
+
+This ensures:
+- Data integrity (calculations done server-side)
+- Consistent tax application (5% as per requirement)
+- Automatic updates when items are added/modified
 
 ### Reference Number Generation
 
@@ -426,50 +446,77 @@ Example: PO-20260310143022-A1B2C3D4
 
 ## Security Features
 
-- **JWT Authentication**: Stateless token-based auth
+- **JWT Authentication**: Stateless token-based auth with expiration
 - **Input Validation**: Pydantic schemas validate all input
+- **Input Sanitization**: XSS protection using bleach library
+- **Rate Limiting**: API rate limiting with slowapi (prevents abuse)
 - **CORS Protection**: Configured middleware
 - **Environment Variables**: Secrets stored securely
-- **SQL Injection Prevention**: SQLAlchemy ORM
+- **SQL Injection Prevention**: SQLAlchemy ORM with parameterized queries
+
+## AI Auto-Description Feature (Gen AI Integration)
+
+The "Auto-Description" button on Products page generates professional marketing descriptions:
+
+1. **OpenAI Integration**: Uses GPT-3.5-turbo if `OPENAI_API_KEY` is configured
+2. **Google Gemini**: Falls back to Gemini Pro if `GEMINI_API_KEY` is configured
+3. **Template Fallback**: Uses intelligent templates if no API keys available
+
+Example prompt: *"Write a professional 2-sentence marketing description for: {product_name}"*
 
 ## Troubleshooting
 
-### Database Connection Issues
+### Database Issues
 
+The SQLite database (`erp_po_system.db`) is created automatically. To reset:
 ```bash
-# Verify PostgreSQL is running
-pg_isready -h localhost -p 5432
-
-# Check connection string format
-postgresql://user:password@host:port/database
+rm erp_po_system.db
+python run.py  # Recreates database
 ```
 
 ### Authentication Errors
 
 - Verify JWT token in Authorization header
 - Check token expiration (default: 60 minutes)
-- In debug mode, use Development Login
+- Use Development Login when DEBUG=True
 
 ### CORS Issues
 
-If accessing from different origin, update CORS settings in `main.py`:
+If accessing from different origin, update CORS settings in `main.py`.
 
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://your-frontend-url"],
-    ...
-)
-```
+## Database Schema Export
+
+SQL schema file is located at `database/schema.sql`. This includes all table definitions with Primary Keys, Foreign Keys, and constraints.
+
+## Design Choices
+
+### Why SQLite over PostgreSQL?
+- Zero configuration required for demo/evaluation
+- Easy to distribute and run locally
+- SQLAlchemy ORM makes switching to PostgreSQL trivial (change DATABASE_URL)
+
+### Why Vanilla JS over jQuery?
+- Modern browsers support all required features natively
+- Smaller bundle size, faster load times
+- Better alignment with contemporary web development practices
+
+### Why Server-Side Tax Calculation?
+- Ensures data integrity (can't be manipulated client-side)
+- Single source of truth for business logic
+- Easy to audit and modify tax rates
+
+### Add Row Logic (Frontend)
+- Items stored in JavaScript array before submission
+- Real-time subtotal/tax/total calculation displayed
+- Edit/Remove functionality with instant UI updates
+- Single API call on submit for better performance
+
+## Author
+
+Developed for IV Innovations Private Limited Assignment
 
 ## License
 
 MIT License - Feel free to use and modify for your projects.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
