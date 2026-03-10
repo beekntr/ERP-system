@@ -1,45 +1,21 @@
-/**
- * ERP Purchase Order System - Main Application JavaScript
- * Contains common utilities and authentication handling
- */
-
-// =====================
-// Constants & Configuration
-// =====================
 const API_BASE_URL = '/api';
-const GOOGLE_CLIENT_ID = ''; // Will be loaded from server config
+const GOOGLE_CLIENT_ID = '';
 
-// =====================
-// State Management
-// =====================
 const AppState = {
     user: null,
     token: null,
     googleClientId: null
 };
 
-// =====================
-// Utility Functions
-// =====================
-
-/**
- * Get stored authentication token
- */
 function getToken() {
     return localStorage.getItem('erp_token');
 }
 
-/**
- * Store authentication token
- */
 function setToken(token) {
     localStorage.setItem('erp_token', token);
     AppState.token = token;
 }
 
-/**
- * Clear authentication data
- */
 function clearAuth() {
     localStorage.removeItem('erp_token');
     localStorage.removeItem('erp_user');
@@ -47,32 +23,20 @@ function clearAuth() {
     AppState.user = null;
 }
 
-/**
- * Get stored user data
- */
 function getUser() {
     const userData = localStorage.getItem('erp_user');
     return userData ? JSON.parse(userData) : null;
 }
 
-/**
- * Store user data
- */
 function setUser(user) {
     localStorage.setItem('erp_user', JSON.stringify(user));
     AppState.user = user;
 }
 
-/**
- * Check if user is authenticated
- */
 function isAuthenticated() {
     return !!getToken();
 }
 
-/**
- * Redirect to login if not authenticated
- */
 function requireAuth() {
     if (!isAuthenticated()) {
         window.location.href = '/login';
@@ -81,9 +45,6 @@ function requireAuth() {
     return true;
 }
 
-/**
- * Make authenticated API request
- */
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
     
@@ -131,9 +92,6 @@ async function apiRequest(endpoint, options = {}) {
     }
 }
 
-/**
- * Show toast notification
- */
 function showToast(message, type = 'success') {
     // Create toast container if it doesn't exist
     let container = document.querySelector('.toast-container');
@@ -164,9 +122,6 @@ function showToast(message, type = 'success') {
     toast.addEventListener('hidden.bs.toast', () => toast.remove());
 }
 
-/**
- * Show loading spinner in element
- */
 function showLoading(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -180,9 +135,6 @@ function showLoading(elementId) {
     }
 }
 
-/**
- * Show empty state message
- */
 function showEmptyState(elementId, message = 'No data found', icon = 'bi-inbox') {
     const element = document.getElementById(elementId);
     if (element) {
@@ -196,9 +148,6 @@ function showEmptyState(elementId, message = 'No data found', icon = 'bi-inbox')
     }
 }
 
-/**
- * Format currency
- */
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -206,9 +155,6 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
-/**
- * Format date
- */
 function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -217,9 +163,6 @@ function formatDate(dateString) {
     });
 }
 
-/**
- * Format datetime
- */
 function formatDateTime(dateString) {
     return new Date(dateString).toLocaleString('en-US', {
         year: 'numeric',
@@ -230,9 +173,6 @@ function formatDateTime(dateString) {
     });
 }
 
-/**
- * Get status badge HTML
- */
 function getStatusBadge(status) {
     const statusClasses = {
         'draft': 'badge-draft',
@@ -246,9 +186,6 @@ function getStatusBadge(status) {
     return `<span class="badge ${statusClasses[status] || 'badge-draft'}">${status.toUpperCase()}</span>`;
 }
 
-/**
- * Get user initials for avatar
- */
 function getUserInitials(name) {
     if (!name) return '?';
     const parts = name.split(' ');
@@ -258,9 +195,6 @@ function getUserInitials(name) {
     return name.substring(0, 2).toUpperCase();
 }
 
-/**
- * Update header with user info
- */
 function updateUserHeader() {
     const user = getUser();
     const userNameEl = document.getElementById('userName');
@@ -275,9 +209,6 @@ function updateUserHeader() {
     }
 }
 
-/**
- * Fetch current user info from API
- */
 async function fetchCurrentUser() {
     try {
         const user = await apiRequest('/auth/me');
@@ -293,23 +224,16 @@ async function fetchCurrentUser() {
     }
 }
 
-/**
- * Handle logout
- */
 async function handleLogout() {
     try {
         await apiRequest('/auth/logout', { method: 'POST' });
     } catch (e) {
-        // Continue with logout even if API fails
     }
     
     clearAuth();
     window.location.href = '/login';
 }
 
-/**
- * Confirm dialog
- */
 function confirmAction(message) {
     return new Promise((resolve) => {
         // Create modal
@@ -350,13 +274,6 @@ function confirmAction(message) {
     });
 }
 
-// =====================
-// Google OAuth Handling
-// =====================
-
-/**
- * Initialize Google OAuth
- */
 async function initGoogleAuth() {
     try {
         const config = await fetch('/api/auth/config').then(r => r.json());
@@ -378,9 +295,6 @@ async function initGoogleAuth() {
     }
 }
 
-/**
- * Handle Google OAuth callback
- */
 async function handleGoogleCallback(response) {
     try {
         const res = await fetch('/api/auth/google', {
@@ -411,9 +325,6 @@ async function handleGoogleCallback(response) {
     }
 }
 
-/**
- * Handle development login
- */
 async function handleDevLogin() {
     try {
         const res = await fetch('/api/auth/dev-login', {
@@ -438,13 +349,6 @@ async function handleDevLogin() {
     }
 }
 
-// =====================
-// Page Navigation Helpers
-// =====================
-
-/**
- * Set active navigation item
- */
 function setActiveNavItem(page) {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
@@ -455,13 +359,6 @@ function setActiveNavItem(page) {
     });
 }
 
-// =====================
-// Initialization
-// =====================
-
-/**
- * Initialize common page elements
- */
 function initPage(pageName) {
     // Check authentication for protected pages
     if (pageName !== 'login' && !requireAuth()) {
@@ -477,7 +374,6 @@ function initPage(pageName) {
     return true;
 }
 
-// Export for use in other modules
 window.ERP = {
     apiRequest,
     showToast,

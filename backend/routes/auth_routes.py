@@ -1,8 +1,3 @@
-"""
-Authentication API routes.
-Handles Google OAuth login and JWT token management.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
@@ -27,16 +22,6 @@ async def google_login(
     auth_request: GoogleAuthRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Authenticate user with Google OAuth.
-    
-    - **token**: Google ID token from client-side OAuth
-    
-    Flow:
-    1. Verifies Google token
-    2. Creates user if first login
-    3. Returns JWT access token and user info
-    """
     try:
         user, access_token = authenticate_google_user(db, auth_request.token)
         return LoginResponse(
@@ -59,13 +44,6 @@ async def dev_login(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """
-    Development login endpoint for testing without Google OAuth.
-    
-    WARNING: Only use in development mode.
-    
-    Creates a test user and returns a JWT token.
-    """
     if not settings.DEBUG:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -73,7 +51,6 @@ async def dev_login(
         )
     
     try:
-        # Create or get dev user
         user = crud.get_or_create_user(
             db,
             email="developer@erp-demo.com",
@@ -81,7 +58,6 @@ async def dev_login(
             oauth_provider="development"
         )
         
-        # Create token using the auth module
         from backend.auth import create_access_token
         access_token = create_access_token(
             data={"sub": user.email, "user_id": user.id}
@@ -107,11 +83,6 @@ async def get_current_user_info(
     request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get current authenticated user information.
-    
-    Requires: Authorization header with Bearer token.
-    """
     return current_user
 
 
@@ -121,27 +92,12 @@ async def logout(
     request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Logout endpoint.
-    
-    Note: Since we're using JWTs, the token is not invalidated server-side.
-    The client should remove the token from localStorage.
-    
-    For a complete solution, consider implementing:
-    - Token blacklist in Redis
-    - Short-lived tokens with refresh tokens
-    """
     return {"message": "Logged out successfully. Please remove the token from client storage."}
 
 
 @router.get("/config")
 @limiter.limit("60/minute")
 async def get_auth_config(request: Request):
-    """
-    Get public authentication configuration.
-    
-    Returns Google Client ID for frontend OAuth initialization.
-    """
     return {
         "google_client_id": settings.GOOGLE_CLIENT_ID,
         "app_name": settings.APP_NAME

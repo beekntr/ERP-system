@@ -1,28 +1,10 @@
-/**
- * ERP Purchase Order System - Purchase Order JavaScript
- * Handles purchase order creation and management
- */
+const TAX_RATE = 0.05;
 
-// =====================
-// Constants
-// =====================
-const TAX_RATE = 0.05; // 5% tax
-
-// =====================
-// State
-// =====================
 let poItems = [];
 let vendors = [];
 let products = [];
 let editingItemIndex = null;
 
-// =====================
-// Load Data
-// =====================
-
-/**
- * Load vendors for dropdown
- */
 async function loadVendors() {
     try {
         vendors = await ERP.apiRequest('/vendors');
@@ -32,9 +14,6 @@ async function loadVendors() {
     }
 }
 
-/**
- * Load products for dropdown
- */
 async function loadProducts() {
     try {
         products = await ERP.apiRequest('/products');
@@ -44,9 +23,6 @@ async function loadProducts() {
     }
 }
 
-/**
- * Populate vendor dropdown
- */
 function populateVendorDropdown() {
     const select = document.getElementById('vendorSelect');
     if (!select) return;
@@ -60,16 +36,10 @@ function populateVendorDropdown() {
     });
 }
 
-/**
- * Populate product dropdown in add item form
- */
 function populateProductDropdown() {
     updateProductDropdownInRow();
 }
 
-/**
- * Update product dropdown in a specific row or the add form
- */
 function updateProductDropdownInRow(selectId = 'productSelect') {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -84,13 +54,6 @@ function updateProductDropdownInRow(selectId = 'productSelect') {
     });
 }
 
-// =====================
-// Item Management
-// =====================
-
-/**
- * Handle product selection - auto-fill price
- */
 function handleProductSelect(selectElement) {
     const selectedOption = selectElement.options[selectElement.selectedIndex];
     const priceInput = document.getElementById('itemPrice');
@@ -100,9 +63,6 @@ function handleProductSelect(selectElement) {
     }
 }
 
-/**
- * Add item to purchase order
- */
 function addItem() {
     const productSelect = document.getElementById('productSelect');
     const quantityInput = document.getElementById('itemQuantity');
@@ -166,9 +126,6 @@ function addItem() {
     updateTotals();
 }
 
-/**
- * Edit item
- */
 function editItem(index) {
     const item = poItems[index];
     editingItemIndex = index;
@@ -179,18 +136,12 @@ function editItem(index) {
     document.getElementById('addItemBtn').textContent = 'Update Item';
 }
 
-/**
- * Remove item from purchase order
- */
 function removeItem(index) {
     poItems.splice(index, 1);
     renderItemsTable();
     updateTotals();
 }
 
-/**
- * Render items table
- */
 function renderItemsTable() {
     const tbody = document.getElementById('itemsTableBody');
     if (!tbody) return;
@@ -228,9 +179,6 @@ function renderItemsTable() {
     `).join('');
 }
 
-/**
- * Calculate and update totals
- */
 function updateTotals() {
     const subtotal = poItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
     const tax = subtotal * TAX_RATE;
@@ -241,13 +189,6 @@ function updateTotals() {
     document.getElementById('totalAmount').textContent = ERP.formatCurrency(total);
 }
 
-// =====================
-// Form Submission
-// =====================
-
-/**
- * Submit purchase order
- */
 async function submitPurchaseOrder() {
     const vendorId = parseInt(document.getElementById('vendorSelect').value);
     
@@ -304,13 +245,6 @@ async function submitPurchaseOrder() {
     }
 }
 
-// =====================
-// Dashboard Functions
-// =====================
-
-/**
- * Load purchase orders for dashboard
- */
 async function loadPurchaseOrders() {
     const tbody = document.getElementById('poTableBody');
     try {
@@ -338,9 +272,6 @@ async function loadPurchaseOrders() {
     }
 }
 
-/**
- * Render purchase orders table
- */
 function renderPurchaseOrdersTable(orders) {
     const tbody = document.getElementById('poTableBody');
     if (!tbody) return;
@@ -368,9 +299,6 @@ function renderPurchaseOrdersTable(orders) {
     `).join('');
 }
 
-/**
- * Update dashboard statistics
- */
 function updateDashboardStats(orders) {
     // Count by status
     const stats = {
@@ -392,9 +320,6 @@ function updateDashboardStats(orders) {
     if (approvedOrdersEl) approvedOrdersEl.textContent = stats.approved;
 }
 
-/**
- * View purchase order details
- */
 async function viewPurchaseOrder(id) {
     try {
         const order = await ERP.apiRequest(`/purchase-orders/${id}`);
@@ -404,17 +329,12 @@ async function viewPurchaseOrder(id) {
     }
 }
 
-/**
- * Show purchase order details in modal
- */
 function showPurchaseOrderModal(order) {
     const modal = document.getElementById('poDetailModal');
     if (!modal) {
-        // Create modal if it doesn't exist
         createPODetailModal();
     }
     
-    // Populate modal content
     document.getElementById('modalReferenceNo').textContent = order.reference_no;
     document.getElementById('modalVendor').textContent = order.vendor ? order.vendor.name : 'N/A';
     document.getElementById('modalOrderDate').textContent = ERP.formatDateTime(order.order_date);
@@ -423,7 +343,6 @@ function showPurchaseOrderModal(order) {
     document.getElementById('modalTax').textContent = ERP.formatCurrency(order.tax);
     document.getElementById('modalTotal').textContent = ERP.formatCurrency(order.total_amount);
     
-    // Populate items table
     const itemsHtml = order.items.map((item, index) => `
         <tr>
             <td>${index + 1}</td>
@@ -437,14 +356,10 @@ function showPurchaseOrderModal(order) {
     
     document.getElementById('modalItemsBody').innerHTML = itemsHtml;
     
-    // Show modal
     const bsModal = new bootstrap.Modal(document.getElementById('poDetailModal'));
     bsModal.show();
 }
 
-/**
- * Create PO detail modal
- */
 function createPODetailModal() {
     const modal = document.createElement('div');
     modal.className = 'modal fade';
@@ -507,13 +422,6 @@ function createPODetailModal() {
     document.body.appendChild(modal);
 }
 
-// =====================
-// Initialize
-// =====================
-
-/**
- * Initialize purchase order page
- */
 async function initCreatePOPage() {
     if (!ERP.initPage('create-po')) return;
     
@@ -522,9 +430,6 @@ async function initCreatePOPage() {
     updateTotals();
 }
 
-/**
- * Initialize dashboard page
- */
 async function initDashboardPage() {
     if (!ERP.initPage('dashboard')) return;
     
@@ -532,11 +437,9 @@ async function initDashboardPage() {
         await loadPurchaseOrders();
     } catch (error) {
         console.error('Failed to initialize dashboard:', error);
-        // Don't redirect on error, just show the error state
     }
 }
 
-// Export functions
 window.POManager = {
     initCreatePOPage,
     initDashboardPage,

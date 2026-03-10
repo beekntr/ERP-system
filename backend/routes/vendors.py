@@ -1,8 +1,3 @@
-"""
-Vendor API routes.
-Handles CRUD operations for vendor management.
-"""
-
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
@@ -28,12 +23,6 @@ async def get_vendors(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get all vendors.
-    
-    - **skip**: Number of records to skip (pagination)
-    - **limit**: Maximum number of records to return
-    """
     vendors = crud.get_vendors(db, skip=skip, limit=limit)
     return vendors
 
@@ -46,11 +35,6 @@ async def get_vendor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get a specific vendor by ID.
-    
-    - **vendor_id**: The ID of the vendor to retrieve
-    """
     vendor = crud.get_vendor_by_id(db, vendor_id)
     if not vendor:
         raise HTTPException(
@@ -68,26 +52,16 @@ async def create_vendor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Create a new vendor.
-    
-    - **name**: Vendor name (required)
-    - **contact_info**: Contact information (optional)
-    - **rating**: Vendor rating 0-5 (optional)
-    """
-    # Validate input safety
     if not is_safe_input(vendor.name):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid characters detected in vendor name"
         )
     
-    # Sanitize inputs
     vendor.name = sanitize(vendor.name, max_length=255)
     if vendor.contact_info:
         vendor.contact_info = sanitize(vendor.contact_info, max_length=1000)
     
-    # Check if vendor with same name exists
     existing = crud.get_vendor_by_name(db, vendor.name)
     if existing:
         raise HTTPException(
@@ -107,13 +81,6 @@ async def update_vendor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Update an existing vendor.
-    
-    - **vendor_id**: The ID of the vendor to update
-    - All fields are optional, only provided fields will be updated
-    """
-    # Sanitize inputs
     if vendor.name:
         if not is_safe_input(vendor.name):
             raise HTTPException(
@@ -124,7 +91,6 @@ async def update_vendor(
     if vendor.contact_info:
         vendor.contact_info = sanitize(vendor.contact_info, max_length=1000)
     
-    # Check if vendor exists
     existing = crud.get_vendor_by_id(db, vendor_id)
     if not existing:
         raise HTTPException(
@@ -132,7 +98,6 @@ async def update_vendor(
             detail=f"Vendor with id {vendor_id} not found"
         )
     
-    # Check for duplicate name if name is being updated
     if vendor.name and vendor.name != existing.name:
         duplicate = crud.get_vendor_by_name(db, vendor.name)
         if duplicate:
@@ -153,13 +118,6 @@ async def delete_vendor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Delete a vendor.
-    
-    - **vendor_id**: The ID of the vendor to delete
-    
-    Note: This will also delete all associated purchase orders.
-    """
     success = crud.delete_vendor(db, vendor_id)
     if not success:
         raise HTTPException(

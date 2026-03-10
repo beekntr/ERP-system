@@ -1,8 +1,3 @@
-"""
-Product API routes.
-Handles CRUD operations for product management.
-"""
-
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
@@ -31,12 +26,6 @@ async def get_products(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get all products.
-    
-    - **skip**: Number of records to skip (pagination)
-    - **limit**: Maximum number of records to return
-    """
     products = crud.get_products(db, skip=skip, limit=limit)
     return products
 
@@ -49,11 +38,6 @@ async def get_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get a specific product by ID.
-    
-    - **product_id**: The ID of the product to retrieve
-    """
     product = crud.get_product_by_id(db, product_id)
     if not product:
         raise HTTPException(
@@ -71,29 +55,17 @@ async def create_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Create a new product.
-    
-    - **name**: Product name (required)
-    - **sku**: Unique product SKU (required)
-    - **unit_price**: Unit price (required)
-    - **stock_level**: Current stock level (optional)
-    - **description**: Product description (optional)
-    """
-    # Validate input safety
     if not is_safe_input(product.name):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid characters detected in product name"
         )
     
-    # Sanitize inputs
     product.name = sanitize(product.name, max_length=255)
     product.sku = sanitize_sku(product.sku)
     if product.description:
         product.description = sanitize(product.description, max_length=2000)
     
-    # Check if product with same SKU exists
     existing = crud.get_product_by_sku(db, product.sku)
     if existing:
         raise HTTPException(
@@ -113,13 +85,6 @@ async def update_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Update an existing product.
-    
-    - **product_id**: The ID of the product to update
-    - All fields are optional, only provided fields will be updated
-    """
-    # Sanitize inputs
     if product.name:
         if not is_safe_input(product.name):
             raise HTTPException(
@@ -132,7 +97,6 @@ async def update_product(
     if product.description:
         product.description = sanitize(product.description, max_length=2000)
     
-    # Check if product exists
     existing = crud.get_product_by_id(db, product_id)
     if not existing:
         raise HTTPException(
@@ -140,7 +104,6 @@ async def update_product(
             detail=f"Product with id {product_id} not found"
         )
     
-    # Check for duplicate SKU if SKU is being updated
     if product.sku and product.sku != existing.sku:
         duplicate = crud.get_product_by_sku(db, product.sku)
         if duplicate:
@@ -161,11 +124,6 @@ async def delete_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Delete a product.
-    
-    - **product_id**: The ID of the product to delete
-    """
     success = crud.delete_product(db, product_id)
     if not success:
         raise HTTPException(
@@ -182,14 +140,6 @@ async def generate_product_description(
     ai_request: AIDescriptionRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Generate an AI-powered product description.
-    
-    - **product_name**: The name of the product to generate description for
-    
-    Supports: OpenAI, Google Gemini, or template fallback.
-    """
-    # Validate input safety first (before sanitization)
     raw_name = ai_request.product_name
     if not raw_name or not is_safe_input(raw_name):
         raise HTTPException(
@@ -197,10 +147,8 @@ async def generate_product_description(
             detail="Invalid product name"
         )
     
-    # Sanitize input for use
     product_name = sanitize(raw_name, max_length=255)
     
-    # Try OpenAI first
     if settings.OPENAI_API_KEY:
         try:
             async with httpx.AsyncClient() as client:
@@ -235,7 +183,6 @@ async def generate_product_description(
         except Exception as e:
             print(f"OpenAI error: {e}")
     
-    # Try Google Gemini
     if settings.GEMINI_API_KEY:
         try:
             async with httpx.AsyncClient() as client:
@@ -263,21 +210,15 @@ async def generate_product_description(
         except Exception as e:
             print(f"Gemini error: {e}")
     
-    # Fallback: Generate template-based description
     description = generate_template_description(product_name)
     return AIDescriptionResponse(description=description)
 
 
 def generate_template_description(product_name: str) -> str:
-    """
-    Generate a template-based product description when AI APIs are unavailable.
-    """
     import random
     
-    # Extract keywords from product name
     name_lower = product_name.lower()
     
-    # Category detection and templates
     templates = {
         "laptop": [
             f"The {product_name} delivers exceptional performance for professionals and power users alike. Experience seamless multitasking and stunning visuals in a sleek, portable design.",
@@ -311,7 +252,6 @@ def generate_template_description(product_name: str) -> str:
         ]
     }
     
-    # Find matching category
     selected_templates = templates["default"]
     for keyword, category_templates in templates.items():
         if keyword in name_lower:
