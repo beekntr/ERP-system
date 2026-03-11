@@ -1,19 +1,19 @@
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #17a2b8;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
+    --primary-color: #000000;
+    --secondary-color: #666666;
+    --success-color: #333333;
+    --danger-color: #000000;
+    --warning-color: #999999;
+    --info-color: #444444;
+    --light-color: #f5f5f5;
+    --dark-color: #000000;
     --sidebar-width: 250px;
     --header-height: 60px;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f9;
+    background-color: #f5f5f5;
     min-height: 100vh;
 }
 
@@ -22,7 +22,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
 }
 
 .login-card {
@@ -37,7 +37,7 @@ body {
 
 .login-logo {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: #000000;
     margin-bottom: 1rem;
 }
 
@@ -70,9 +70,9 @@ body {
 }
 
 .google-btn:hover {
-    border-color: #4285F4;
-    background: #f8f9fa;
-    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    border-color: #000000;
+    background: #f5f5f5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .google-btn img {
@@ -103,7 +103,7 @@ body {
 
 .sidebar {
     width: var(--sidebar-width);
-    background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+    background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
     position: fixed;
     top: 0;
     left: 0;
@@ -153,8 +153,8 @@ body {
 }
 
 .nav-link.active {
-    background: var(--primary-color);
-    color: white;
+    background: #ffffff;
+    color: #000000;
 }
 
 .nav-link i {
@@ -195,7 +195,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: #000000;
     color: white;
     display: flex;
     align-items: center;
@@ -248,10 +248,10 @@ body {
     color: white;
 }
 
-.stats-icon.primary { background: linear-gradient(135deg, #007bff, #0056b3); }
-.stats-icon.success { background: linear-gradient(135deg, #28a745, #1e7e34); }
-.stats-icon.warning { background: linear-gradient(135deg, #ffc107, #d39e00); }
-.stats-icon.danger { background: linear-gradient(135deg, #dc3545, #bd2130); }
+.stats-icon.primary { background: linear-gradient(135deg, #333333, #000000); }
+.stats-icon.success { background: linear-gradient(135deg, #444444, #222222); }
+.stats-icon.warning { background: linear-gradient(135deg, #666666, #444444); }
+.stats-icon.danger { background: linear-gradient(135deg, #222222, #000000); }
 
 .stats-info h3 {
     font-size: 1.75rem;
@@ -284,7 +284,7 @@ body {
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .form-control, .form-select {
@@ -295,8 +295,8 @@ body {
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    border-color: #000000;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .form-label {
@@ -313,44 +313,44 @@ body {
 }
 
 .btn-primary {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
+    background: #000000;
+    border-color: #000000;
 }
 
 .btn-primary:hover {
-    background: #0056b3;
-    border-color: #0056b3;
+    background: #333333;
+    border-color: #333333;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-success {
-    background: var(--success-color);
-    border-color: var(--success-color);
+    background: #333333;
+    border-color: #333333;
 }
 
 .btn-success:hover {
-    background: #1e7e34;
-    border-color: #1e7e34;
+    background: #444444;
+    border-color: #444444;
 }
 
 .btn-danger {
-    background: var(--danger-color);
-    border-color: var(--danger-color);
+    background: #666666;
+    border-color: #666666;
 }
 
 .btn-danger:hover {
-    background: #bd2130;
-    border-color: #bd2130;
+    background: #555555;
+    border-color: #555555;
 }
 
 .btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+    color: #000000;
+    border-color: #000000;
 }
 
 .btn-outline-primary:hover {
-    background: var(--primary-color);
+    background: #000000;
     color: white;
 }
 
@@ -361,12 +361,12 @@ body {
     font-size: 0.8rem;
 }
 
-.badge-draft { background: #6c757d; color: white; }
-.badge-pending { background: #ffc107; color: #333; }
-.badge-approved { background: #17a2b8; color: white; }
-.badge-ordered { background: #007bff; color: white; }
-.badge-received { background: #28a745; color: white; }
-.badge-cancelled { background: #dc3545; color: white; }
+.badge-draft { background: #999999; color: white; }
+.badge-pending { background: #666666; color: white; }
+.badge-approved { background: #444444; color: white; }
+.badge-ordered { background: #333333; color: white; }
+.badge-received { background: #000000; color: white; }
+.badge-cancelled { background: #888888; color: white; }
 
 .modal-content {
     border-radius: 12px;
@@ -409,13 +409,13 @@ body {
 }
 
 .remove-item-btn {
-    color: var(--danger-color);
+    color: #666666;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .remove-item-btn:hover {
-    color: #bd2130;
+    color: #000000;
     transform: scale(1.1);
 }
 
@@ -437,7 +437,7 @@ body {
     border-bottom: none;
     font-weight: 700;
     font-size: 1.1rem;
-    color: var(--primary-color);
+    color: #000000;
 }
 
 .loading-spinner {
